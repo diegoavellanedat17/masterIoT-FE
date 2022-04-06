@@ -55,11 +55,8 @@ function renderStationsInfo(stations) {
     stations.forEach((station) => {
         db.collection('stations')
             .where('name', '==', station)
-            .get()
-            .then((querySnapshot) => {
+            .onSnapshot(function (querySnapshot) {
                 querySnapshot.forEach((doc) => {
-                    // doc.data() is never undefined for query doc snapshots
-                    //console.log(doc.id, ' => ', doc.data())
                     const station = doc.data().name
                     const status = doc.data().status
 
@@ -67,30 +64,31 @@ function renderStationsInfo(stations) {
                     if (status == 'on') {
                         borderColor = 'border-left-success'
                     }
-
-                    $('#main-dashboard').append(`                        
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card ${borderColor} shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    ${station}</div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800 text-uppercase">${status}</div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    if (!$(`#${station}`).length) {
+                        $('#main-dashboard').append(`                        
+                    <div class="col-xl-3 col-md-6 mb-4" id="${station}" >
+                        <div class="card ${borderColor} shadow h-100 py-2" id="${station}-border">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            ${station}</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800 text-uppercase" id="${station}-status-text">${status}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>`)
+                    </div>`)
+                    } else {
+                        $(`#${station}-border`).removeClass('border-left-secondary border-left-success')
+                        $(`#${station}-status-text`).text(status)
+                        $(`#${station}-border`).addClass(borderColor)
+                    }
                 })
             })
-            .catch((error) => {
-                console.log('Error getting documents: ', error)
-            })
-        //await getStationInfo(station)
     })
 }
 

@@ -12,7 +12,6 @@ const firebaseConfig = {
 }
 const firebase = initializeApp(firebaseConfig)
 const auth = getAuth()
-const globalUser = 'diego'
 onAuthStateChanged(auth, (user) => {
     if (user) {
         console.log('USER', user)
