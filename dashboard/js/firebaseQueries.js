@@ -1,3 +1,6 @@
+$("body").submit(function(e) {
+    e.preventDefault();
+});
 const firebaseConfig = {
     apiKey: 'AIzaSyBFUU5HOzaTYr1kcfhwlt52Ad4qbUFMGA4',
     authDomain: 'indoor-location-85a5b.firebaseapp.com',
@@ -108,7 +111,34 @@ $('#tables').click(function () {
     $('#main-dashboard').empty()
     // render de table
     $('#main-dashboard').append(`
-    <div class="card shadow mb-4 col-12">
+    <div class=" mb-4 col-12">
+        <div class="row">
+            <div class="col-4"">
+                <div class=" tags-info" >
+                    <p >TAG1</p>
+                    <p id="tag1"></p>
+                </div>
+            </div>
+            <div class=" col-4" >
+                <div class=" tags-info">
+                    <p>TAG2</p>
+                    <p id="tag2"></p>
+                </div>
+            </div>
+            <div class=" col-4" >
+                <div class=" tags-info" >
+                    <p>TAG3</p>
+                    <p id="tag3"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card shadow mb-4 col-4 ">
+        <div class=" col-12  justify-content-center mt-3 mb-3">
+            <img src = "../dashboard/img/plano.svg" alt="My Happy SVG"/>
+        </div>
+    </div>
+    <div class="card shadow mb-4 col-8">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">Tags History Location</h6>
             </div>
@@ -154,7 +184,6 @@ function searchTags(userData) {
                 // doc.data() is never undefined for query doc snapshots
                 //console.log(doc.id, ' => ', doc.data())
                 const userTags = doc.data().tags
-                console.log(userTags)
                 renderTags(userTags)
             })
         })
@@ -164,25 +193,37 @@ function searchTags(userData) {
 }
 
 function renderTags(userTags) {
+    console.log(userTags)
     userTags.forEach((tag) => {
+        console.log(tag)
+        
         db.collection('tag_location')
             .where('name', '==', tag)
-            .get()
-            .then((querySnapshot) => {
+            .orderBy('time', 'desc')
+            .limit(5)
+            .onSnapshot(function (querySnapshot) {
+                let firstFlag = false;
+                $(`.${tag}`).remove()
                 querySnapshot.forEach((doc) => {
-                    // doc.data() is never undefined for query doc snapshots
-                    //console.log(doc.id, ' => ', doc.data())
+                    
                     const tag = doc.data()
+                    if (!firstFlag){
+                        $(`#${tag.name}`).empty()
+                        $(`#${tag.name}`).append(`${tag.coordinates}`)
+                        
+                        firstFlag = true;
+                    }
+                    const timestamp = tag.time.seconds
+                    let formatedDate = formatDate(timestamp)
+                    console.log(formatedDate)
                     $('.table-body').append(`
-            <tr>
-            <th class="text-uppercase">${tag.name}</th>
-            <th>${tag.coordinates}</th>
-            <th>${tag.time}</th>
-        </tr>`)
+                    <tr class = "${tag.name}">
+                    <th class="text-uppercase ">${tag.name}</th>
+                    <th>${tag.coordinates}</th>
+                    <th>${formatedDate}</th>
+                </tr>`)
+                
                 })
-            })
-            .catch((error) => {
-                console.log('Error getting documents: ', error)
             })
     })
 }
@@ -194,3 +235,34 @@ getUserData()
     .catch((error) => {
         console.error(error)
     })
+
+function formatDate(timestamp) {
+    const  month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct", "Nov", "Dec"];
+    const date = new Date(timestamp * 1000)
+    let dataMinutes = date.getMinutes().toString()
+    let dataHours= date.getHours().toString()
+    let dataSeconds= date.getSeconds().toString()
+    if (dataMinutes.toString().length == 1) {
+        dataMinutes = "0" + dataMinutes;
+    }
+    if (dataHours.toString().length == 1) {
+        dataHours = "0" + dataHours;
+    }
+    if (dataSeconds.toString().length == 1) {
+        dataSeconds = "0" + dataSeconds;
+    }
+
+    const dateValues =
+        // date.getFullYear().toString() +
+        // '/' +
+        month[date.getMonth()] +
+        ' ' +
+        date.getDate().toString() +
+        ' ---- ' +
+        dataHours.toString() +
+        ':' +
+        dataMinutes +
+        ':' +
+        dataSeconds.toString()
+    return dateValues
+}
